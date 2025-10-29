@@ -31,7 +31,7 @@ The goal is to provide a unified view of patient demographics, admissions, billi
 
 ## Data Lineage
 
-![Data Lineage](data/datalineage.png)
+![Data Lineage](data/data_lineage.png)
 
 ---
 
