@@ -1,0 +1,12 @@
+sources:
+  - name: source_bronze
+    database: patient_risk_prediction  
+    schema: bronze  
+    tables:
+      - name: healthcare
+
+  - name: source_silver
+    database: patient_risk_prediction  
+    schema: silver  
+    tables:
+      - name: healthcare

@@ -1,0 +1,226 @@
+version: 2
+
+# ------------------ GOLD LAYER LINEAGE (Mermaid) ------------------
+# ```mermaid
+# graph TD
+#     dim_patient --> fact_admissions
+#     dim_doctor --> fact_admissions
+#     dim_patient --> fact_billing_summary
+#
+#     fact_admissions --> vw_high_risk_patients
+#     fact_admissions --> vw_avg_stay_by_hospital
+#     fact_billing_summary --> vw_total_billing_by_insurance
+#     dim_patient --> vw_patient_summary
+#     dim_doctor --> vw_patient_summary
+#     fact_admissions --> vw_patient_summary
+#     fact_billing_summary --> vw_patient_summary
+# ```
+# To visualize, paste the above block into a Mermaid live editor: https://mermaid.live/
+
+models:
+  # ------------------ DIMENSIONS ------------------
+  - name: dim_patient
+    description: Dimension table storing patient demographic and insurance details.
+    columns:
+      - name: patient_sk
+        description: Surrogate primary key for the patient dimension.
+        tests:
+          - unique
+          - not_null
+      - name: patient_name
+        description: Full name of the patient.
+      - name: gender
+        description: Gender of the patient.
+        tests:
+          - accepted_values:
+              values: ['Male', 'Female', 'Other']
+      - name: blood_type
+        description: Blood type of the patient.
+        tests:
+          - accepted_values:
+              values: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
+      - name: medical_condition
+        description: Primary medical condition of the patient.
+      - name: insurance_provider
+        description: Insurance provider associated with the patient.
+
+  - name: dim_doctor
+    description: Dimension table containing doctor and hospital details.
+    columns:
+      - name: doctor_sk
+        description: Surrogate primary key for the doctor dimension.
+        tests:
+          - unique
+          - not_null
+      - name: doctor
+        description: Doctor name.
+      - name: hospital
+        description: Hospital where the doctor practices.
+      - name: conditions_treated
+        description: Number of distinct conditions treated by the doctor.
+      - name: total_patients
+        description: Total number of patients treated.
+
+  # ------------------ FACTS ------------------
+  - name: fact_admissions
+    description: Fact table capturing details of patient admissions, average stay, and admission types.
+    columns:
+      - name: admission_sk
+        description: Surrogate primary key for the admissions fact.
+        tests:
+          - unique
+          - not_null
+      - name: doctor_sk
+        description: Foreign key referencing the doctor dimension.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_doctor')
+              field: doctor_sk
+      - name: patient_sk
+        description: Foreign key referencing the patient dimension.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_patient')
+              field: patient_sk
+      - name: doctor
+        description: Doctor name.
+      - name: hospital
+        description: Hospital where admission occurred.
+      - name: admission_type
+        description: Type of patient admission.
+        tests:
+          - accepted_values:
+              values: ['Emergency', 'Elective', 'Routine']
+      - name: total_admissions
+        description: Total admissions for this combination.
+      - name: avg_stay_duration
+        description: Average stay duration for the group.
+
+  - name: fact_billing_summary
+    description: Aggregated billing data by hospital and insurance provider.
+    columns:
+      - name: billing_sk
+        description: Surrogate primary key for the billing summary fact.
+        tests:
+          - unique
+          - not_null
+      - name: hospital
+        description: Hospital name.
+        tests:
+          - not_null
+      - name: insurance_provider
+        description: Insurance provider.
+        tests:
+          - not_null
+      - name: total_billed
+        description: Total billing amount across patients.
+        tests:
+          - not_null
+      - name: avg_bill
+        description: Average bill per patient.
+      - name: total_patients
+        description: Total number of patients billed.
+
+  # ------------------ VIEWS ------------------
+  - name: vw_high_risk_patients
+    description: View highlighting patients categorized as high risk.
+    columns:
+      - name: patient_sk
+        description: Foreign key linking to dim_patient.
+        tests:
+          - relationships:
+              to: ref('dim_patient')
+              field: patient_sk
+      - name: patient_name
+        description: Patient’s name.
+      - name: gender
+        description: Gender of the patient.
+      - name: medical_condition
+        description: Primary medical condition.
+      - name: hospital
+        description: Hospital associated with the record.
+      - name: billing_amount
+        description: Billing amount for the admission.
+      - name: stay_duration_days
+        description: Total stay duration in days.
+      - name: risk_level
+        description: Risk level.
+        tests:
+          - accepted_values:
+              values: ['High', 'Normal']
+
+  - name: vw_avg_stay_by_hospital
+    description: View summarizing the average stay duration for patients per hospital.
+    columns:
+      - name: hospital_sk
+        description: Surrogate key for each hospital in the view.
+        tests:
+          - unique
+          - not_null
+      - name: hospital
+        description: Hospital name.
+      - name: total_patients
+        description: Number of patients admitted to the hospital.
+      - name: avg_stay_days
+        description: Average stay duration (days).
+      - name: min_stay_days
+        description: Minimum stay duration.
+      - name: max_stay_days
+        description: Maximum stay duration.
+
+  - name: vw_total_billing_by_insurance
+    description: View aggregating billing amounts grouped by insurance provider.
+    columns:
+      - name: insurance_sk
+        description: Surrogate key for each insurance provider.
+        tests:
+          - unique
+          - not_null
+      - name: insurance_provider
+        description: Name of the insurance provider.
+      - name: total_claims
+        description: Number of claims submitted.
+      - name: total_billing
+        description: Total billing amount for the insurance provider.
+      - name: avg_billing
+        description: Average billing per claim.
+      - name: max_billing
+        description: Highest billing amount for a single claim.
+
+  - name: vw_patient_summary
+    description: View providing a unified summary of patient details, hospitalizations, and billing.
+    columns:
+      - name: patient_sk
+        description: Foreign key referencing dim_patient.
+        tests:
+          - relationships:
+              to: ref('dim_patient')
+              field: patient_sk
+      - name: patient_name
+        description: Patient’s full name.
+      - name: age
+        description: Patient age.
+      - name: gender
+        description: Gender of the patient.
+      - name: medical_condition
+        description: Medical condition of the patient.
+      - name: hospital
+        description: Hospital name.
+      - name: insurance_provider
+        description: Insurance provider.
+      - name: medication
+        description: Medication prescribed.
+      - name: admission_type
+        description: Admission type.
+      - name: date_of_admission
+        description: Date of admission.
+      - name: discharge_date
+        description: Date of discharge.
+      - name: stay_duration_days
+        description: Length of stay in days.
+      - name: billing_amount
+        description: Billing amount for the stay.
+      - name: test_results
+        description: Diagnostic test results.
