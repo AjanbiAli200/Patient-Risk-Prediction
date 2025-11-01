@@ -71,6 +71,7 @@ graph TD
         dim_date["dim_date"]
         fact_admissions["fact_admissions"]
         fact_billing_summary["fact_billing_summary"]
+        doctor_billing_summary["doctor_billing_summary"]
         vw_high_risk_patients["vw_high_risk_patients"]
         vw_avg_stay_by_hospital["vw_avg_stay_by_hospital"]
         vw_total_billing_by_insurance["vw_total_billing_by_insurance"]
@@ -89,6 +90,7 @@ graph TD
     %% Silver → Facts
     silver_healthcare --> fact_admissions
     silver_healthcare --> fact_billing_summary
+    silver_healthcare --> doctor_billing_summary
 
     %% Dimensions → Facts
     dim_patient --> fact_admissions
@@ -100,6 +102,10 @@ graph TD
     dim_doctor --> fact_billing_summary
     dim_hospital --> fact_billing_summary
     dim_date --> fact_billing_summary
+
+    dim_doctor --> doctor_billing_summary
+    dim_patient --> doctor_billing_summary
+    dim_hospital --> doctor_billing_summary
 
     %% Facts → Views
     fact_admissions --> vw_high_risk_patients
@@ -118,29 +124,30 @@ graph TD
 
 ## 🧠 Conceptual Mapping to Clinical Tables
 
-| Conceptual Table | Implemented In | Description |
-|------------------|----------------|-------------|
-| **Patients** | `dim_patient`, `vw_patient_summary` | Contains patient demographics, insurance, and identifiers. |
-| **Diagnoses** | `vw_high_risk_patients`, `vw_patient_summary` | Captures patient diagnoses and medical conditions used for risk assessment. |
-| **Treatments** | `vw_patient_summary` | Includes medications, admission type, and attending doctor information. |
-| **Outcomes** | `vw_high_risk_patients`, `fact_billing_summary` | Contains discharge info, stay duration, billing, and computed risk levels. |
+| Conceptual Table | Implemented In                                                            | Description                                                                        |
+| ---------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| **Patients**     | `dim_patient`, `vw_patient_summary`                                       | Contains patient demographics, insurance, and identifiers.                         |
+| **Diagnoses**    | `vw_high_risk_patients`, `vw_patient_summary`                             | Captures patient diagnoses and medical conditions used for risk assessment.        |
+| **Treatments**   | `vw_patient_summary`, `doctor_billing_summary`                            | Includes medications, admission type, doctor assignments, and treatment cost data. |
+| **Outcomes**     | `vw_high_risk_patients`, `fact_billing_summary`, `doctor_billing_summary` | Contains discharge info, stay duration, billing, and computed risk levels.         |
 
 ---
 
 ## 🧱 Gold Layer Models
 
-| Layer | Model | Type | Description |
-|--------|--------|------|-------------|
-| **Dimension** | `dim_patient` | Table | Stores patient demographic and insurance details. |
-| **Dimension** | `dim_doctor` | Table | Contains doctor and hospital assignment data. |
-| **Dimension** | `dim_hospital` | Table | Captures hospital metadata and location information. |
-| **Dimension** | `dim_date` | Table | Stores derived date fields for analytics. |
-| **Fact** | `fact_admissions` | Table | Admission-level information including stay duration and counts. |
-| **Fact** | `fact_billing_summary` | Table | Aggregated billing metrics by hospital and insurance provider. |
-| **View** | `vw_high_risk_patients` | View | Flags patients as high or normal risk based on conditions and stay length. |
-| **View** | `vw_avg_stay_by_hospital` | View | Aggregates average stay durations per hospital. |
-| **View** | `vw_total_billing_by_insurance` | View | Summarizes billing by insurance provider. |
-| **View** | `vw_patient_summary` | View | Comprehensive summary of patient admissions, billing, and treatments. |
+| Layer         | Model                           | Type  | Description                                                                              |
+| ------------- | ------------------------------- | ----- | ---------------------------------------------------------------------------------------- |
+| **Dimension** | `dim_patient`                   | Table | Stores patient demographic and insurance details.                                        |
+| **Dimension** | `dim_doctor`                    | Table | Contains doctor and hospital assignment data.                                            |
+| **Dimension** | `dim_hospital`                  | Table | Captures hospital metadata and location information.                                     |
+| **Dimension** | `dim_date`                      | Table | Stores derived date fields for analytics.                                                |
+| **Fact**      | `fact_admissions`               | Table | Admission-level information including stay duration and counts.                          |
+| **Fact**      | `fact_billing_summary`          | Table | Aggregated billing metrics by hospital and insurance provider.                           |
+| **Fact**      | `doctor_billing_summary`        | Table | Aggregated billing and patient counts by doctor, including average billed per admission. |
+| **View**      | `vw_high_risk_patients`         | View  | Flags patients as high or normal risk based on conditions and stay length.               |
+| **View**      | `vw_avg_stay_by_hospital`       | View  | Aggregates average stay durations per hospital.                                          |
+| **View**      | `vw_total_billing_by_insurance` | View  | Summarizes billing by insurance provider.                                                |
+| **View**      | `vw_patient_summary`            | View  | Comprehensive summary of patient admissions, billing, and treatments.                    |
 
 ---
 
