@@ -149,22 +149,22 @@ graph TD
 ### 🖼️ Dashboard Previews  
 
 #### 🏠 Home (Summary KPIs)
-![Home Dashboard](assets/home_summary.png)
+![Home Dashboard](powerbi/assets/home_summary.png)
 
 #### 👩‍⚕️ Patient Insights
-![Patient Insights](assets/patient_insights.png)
+![Patient Insights](powerbi/assets/patient_insights.png)
 
 #### 🏥 Hospital Performance
-![Hospital Performance](assets/hospital_performance.png)
+![Hospital Performance](powerbi/assets/hospital_performance.png)
 
 #### 👨‍⚕️ Doctor Insights
-![Doctor Insights](assets/doctor_insights.png)
+![Doctor Insights](powerbi/assets/doctor_insights.png)
 
 #### 💰 Billing & Insurance
-![Billing & Insurance](assets/billing_insurance.png)
+![Billing & Insurance](powerbi/assets/billing_insurance.png)
 
 #### 📅 Date Trends
-![Date Trends](assets/date_trends.png)
+![Date Trends](powerbi/assets/date_trends.png)
 
 ---
 
