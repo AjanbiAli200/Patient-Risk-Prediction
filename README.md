@@ -1,54 +1,43 @@
-# Patient-Risk-Prediction
+# 🏥 Patient Risk Prediction — End-to-End Analytics Project
 
 **Author:** Suleman Ali  
 **Date:** 2025-10-28  
 
+---
+
+## 📘 Table of Contents
+1. [Project Overview](#project-overview)  
+2. [Architecture & Data Flow](#architecture--data-flow)  
+3. [Data Lineage](#data-lineage)  
+4. [Conceptual Mapping to Clinical Tables](#conceptual-mapping-to-clinical-tables)  
+5. [Gold Layer Models](#gold-layer-models)  
+6. [ETL Summary](#etl-summary)  
+7. [Power BI Analytics & Visualization](#power-bi-analytics--visualization)  
+8. [Next Steps (Planned)](#next-steps-planned)  
+9. [Notes](#notes)  
 
 ---
 
-## Table of Contents
-1. [Project Overview](#project-overview)
-2. [Architecture & Data Flow](#architecture-&-data-flow)
-3. [Data Lineage](#data-lineage)
-4. [Conceptual Mapping to Clinical Tables](#conceptual-mapping-to-clinical-tables)
-5. [Gold Layer Models](#gold-layer-models)
-6. [ETL Summary](#etl-summary)
-7. [Next Steps (Planned)](#next-steps-planned)
-8. [Notes](#notes)
+## 🧩 Project Overview
+
+This project implements a complete **data engineering and analytics solution** for patient risk prediction using the [Healthcare Dataset](https://www.kaggle.com/datasets/prasad22/healthcare-dataset).
+
+### Goals:
+- Clean and model healthcare data (Patients, Diagnoses, Treatments, Outcomes)  
+- Build ETL pipelines using **Databricks + dbt**  
+- Design an **interactive Power BI dashboard** for hospital analytics  
+- Extend with predictive modeling and Gen-AI chatbot  
 
 ---
 
-## Project Overview
+## 🧱 Architecture & Data Flow
 
-This project implements an end-to-end **ETL pipeline** for patient risk prediction. It uses:
-
-- **Databricks** for Bronze and Silver layers  
-- **dbt** for Gold layer (dimensions, facts, and views)  
-- **Power BI** (planned) for reporting and dashboards  
-- **Chatbot** (planned) for patient insights  
-
-The goal is to provide a unified view of patient demographics, admissions, billing, and risk classification.
-
----
-
-## 🧩 Architecture & Data Flow
-
-### 🔹 Bronze Layer (Raw Data)
-- **Platform:** Databricks  
-- **Schema:** `bronze`
-- **Table:** `healthcare`
-- **Purpose:** Holds the raw ingested healthcare dataset without transformations.
-
-### 🔹 Silver Layer (Cleaned Data)
-- **Platform:** Databricks  
-- **Schema:** `silver`
-- **Table:** `healthcare`
-- **Purpose:** Cleansed and standardized data from Bronze, ready for modeling.
-
-### 🔹 Gold Layer (Analytics Models)
-- **Platform:** dbt (connected to Databricks)
-- **Schema:** `gold`
-- **Purpose:** Dimensional and fact tables for reporting and analytics.
+| Layer | Platform | Description |
+|--------|-----------|-------------|
+| **Bronze** | Databricks | Raw ingestion of healthcare dataset |
+| **Silver** | Databricks | Data cleaning, encoding, and transformation |
+| **Gold** | dbt + Databricks | Dimensional modeling for Power BI consumption |
+| **BI** | Power BI | Dashboards for operational and clinical analytics |
 
 ---
 
@@ -57,11 +46,11 @@ The goal is to provide a unified view of patient demographics, admissions, billi
 ```mermaid
 graph TD
     subgraph Bronze Layer [Databricks - Bronze]
-        bronze_healthcare["healthcare_bronze.healthcare"]
+        bronze_healthcare["bronze.healthcare"]
     end
 
     subgraph Silver Layer [Databricks - Silver]
-        silver_healthcare["healthcare_silver.healthcare"]
+        silver_healthcare["silver.healthcare"]
     end
 
     subgraph Gold Layer [dbt - Gold]
@@ -78,44 +67,23 @@ graph TD
         vw_patient_summary["vw_patient_summary"]
     end
 
-    %% Bronze → Silver
     bronze_healthcare --> silver_healthcare
-
-    %% Silver → Dimensions
     silver_healthcare --> dim_patient
     silver_healthcare --> dim_doctor
     silver_healthcare --> dim_hospital
     silver_healthcare --> dim_date
-
-    %% Silver → Facts
     silver_healthcare --> fact_admissions
     silver_healthcare --> fact_billing_summary
     silver_healthcare --> doctor_billing_summary
 
-    %% Dimensions → Facts
     dim_patient --> fact_admissions
     dim_doctor --> fact_admissions
     dim_hospital --> fact_admissions
     dim_date --> fact_admissions
 
-    dim_patient --> fact_billing_summary
-    dim_doctor --> fact_billing_summary
-    dim_hospital --> fact_billing_summary
-    dim_date --> fact_billing_summary
-
-    dim_doctor --> doctor_billing_summary
-    dim_patient --> doctor_billing_summary
-    dim_hospital --> doctor_billing_summary
-
-    %% Facts → Views
     fact_admissions --> vw_high_risk_patients
-    fact_admissions --> vw_avg_stay_by_hospital
     fact_billing_summary --> vw_total_billing_by_insurance
-
-    %% Views combining multiple facts/dims
-    dim_patient --> vw_patient_summary
-    dim_doctor --> vw_patient_summary
-    dim_hospital --> vw_patient_summary
+    fact_admissions --> vw_avg_stay_by_hospital
     fact_admissions --> vw_patient_summary
     fact_billing_summary --> vw_patient_summary
 ```
@@ -124,55 +92,151 @@ graph TD
 
 ## 🧠 Conceptual Mapping to Clinical Tables
 
-| Conceptual Table | Implemented In                                                            | Description                                                                        |
-| ---------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| **Patients**     | `dim_patient`, `vw_patient_summary`                                       | Contains patient demographics, insurance, and identifiers.                         |
-| **Diagnoses**    | `vw_high_risk_patients`, `vw_patient_summary`                             | Captures patient diagnoses and medical conditions used for risk assessment.        |
-| **Treatments**   | `vw_patient_summary`, `doctor_billing_summary`                            | Includes medications, admission type, doctor assignments, and treatment cost data. |
-| **Outcomes**     | `vw_high_risk_patients`, `fact_billing_summary`, `doctor_billing_summary` | Contains discharge info, stay duration, billing, and computed risk levels.         |
+| Conceptual Table | Implemented In | Description |
+|------------------|----------------|-------------|
+| **Patients** | `dim_patient`, `vw_patient_summary` | Patient demographics, insurance, identifiers |
+| **Diagnoses** | `vw_high_risk_patients` | Diagnosis and risk assessment |
+| **Treatments** | `vw_patient_summary` | Admission, doctor, and treatment information |
+| **Outcomes** | `vw_high_risk_patients`, `fact_billing_summary` | Stay duration, discharge, billing, and outcomes |
 
 ---
 
 ## 🧱 Gold Layer Models
 
-| Layer         | Model                           | Type  | Description                                                                              |
-| ------------- | ------------------------------- | ----- | ---------------------------------------------------------------------------------------- |
-| **Dimension** | `dim_patient`                   | Table | Stores patient demographic and insurance details.                                        |
-| **Dimension** | `dim_doctor`                    | Table | Contains doctor and hospital assignment data.                                            |
-| **Dimension** | `dim_hospital`                  | Table | Captures hospital metadata and location information.                                     |
-| **Dimension** | `dim_date`                      | Table | Stores derived date fields for analytics.                                                |
-| **Fact**      | `fact_admissions`               | Table | Admission-level information including stay duration and counts.                          |
-| **Fact**      | `fact_billing_summary`          | Table | Aggregated billing metrics by hospital and insurance provider.                           |
-| **Fact**      | `doctor_billing_summary`        | Table | Aggregated billing and patient counts by doctor, including average billed per admission. |
-| **View**      | `vw_high_risk_patients`         | View  | Flags patients as high or normal risk based on conditions and stay length.               |
-| **View**      | `vw_avg_stay_by_hospital`       | View  | Aggregates average stay durations per hospital.                                          |
-| **View**      | `vw_total_billing_by_insurance` | View  | Summarizes billing by insurance provider.                                                |
-| **View**      | `vw_patient_summary`            | View  | Comprehensive summary of patient admissions, billing, and treatments.                    |
+| Type | Model | Description |
+|-------|--------|-------------|
+| **Dimension** | `dim_patient` | Patient demographics |
+| **Dimension** | `dim_doctor` | Doctor details |
+| **Dimension** | `dim_hospital` | Hospital metadata |
+| **Dimension** | `dim_date` | Calendar attributes |
+| **Fact** | `fact_admissions` | Admissions and stay data |
+| **Fact** | `fact_billing_summary` | Hospital billing metrics |
+| **Fact** | `doctor_billing_summary` | Doctor-level billing & admissions |
+| **View** | `vw_high_risk_patients` | Risk classification view |
+| **View** | `vw_avg_stay_by_hospital` | Avg stay by hospital |
+| **View** | `vw_total_billing_by_insurance` | Billing by insurer |
+| **View** | `vw_patient_summary` | Consolidated patient-level data |
 
 ---
 
 ## ⚙️ ETL Summary
 
-| Layer | Platform | Key Tasks |
-|--------|-----------|-----------|
-| **Bronze** | Databricks | Ingest raw healthcare dataset. |
-| **Silver** | Databricks | Data cleaning, null handling, encoding, and standardization. |
-| **Gold** | dbt + Databricks | Dimensional modeling (star schema), joins, and view creation for analytics. |
+| Step | Task | Tools |
+|-------|------|-------|
+| **1. Data Ingestion** | Import raw CSV from Kaggle | Databricks (Bronze) |
+| **2. Data Cleaning** | Handle nulls, format columns | PySpark (Silver) |
+| **3. Data Modeling** | Star schema, fact/dim design | dbt (Gold) |
+| **4. Data Validation** | Run dbt tests (unique, not_null, relationships) | dbt tests |
+| **5. Analytics Layer** | Build dashboards | Power BI |
 
 ---
 
-## Next Steps (Planned)
+## 📊 Power BI Analytics & Visualization  
 
-1. **Power BI Reports**: Visualize admissions, billing, and high-risk patients.  
-2. **Predictive Models**: Machine learning to predict patient risk.  
-3. **Chatbot Integration**: Provide patient insights using the data pipeline. 
+### 🎯 Dashboard Pages Overview  
+
+| Page | Purpose | Key Visuals |
+|------|----------|-------------|
+| **Home (Summary KPIs)** | Executive overview | KPIs: Admissions, Billing, Avg Stay, Risk % |
+| **Patient Insights** | Patient demographics | Age, Gender, Insurance, Risk by Group |
+| **Hospital Performance** | Hospital-level metrics | Avg Stay, Risk %, Admissions Trend |
+| **Doctor Insights** | Doctor performance | Avg Stay Weighted, Top Doctors, Billing Efficiency |
+| **Billing & Insurance** | Financial analytics | Billing by Insurance, % Share, Monthly Trends |
+| **Date Trends** | Time-based analysis | Admissions, Billing, Risk, Avg Stay Trends |
+
+---
+
+### 🖼️ Dashboard Previews  
+
+#### 🏠 Home (Summary KPIs)
+![Home Dashboard](assets/home_summary.png)
+
+#### 👩‍⚕️ Patient Insights
+![Patient Insights](assets/patient_insights.png)
+
+#### 🏥 Hospital Performance
+![Hospital Performance](assets/hospital_performance.png)
+
+#### 👨‍⚕️ Doctor Insights
+![Doctor Insights](assets/doctor_insights.png)
+
+#### 💰 Billing & Insurance
+![Billing & Insurance](assets/billing_insurance.png)
+
+#### 📅 Date Trends
+![Date Trends](assets/date_trends.png)
+
+---
+
+### 🧮 Key DAX Measures
+
+```DAX
+Total Admissions = SUM(fact_admissions[total_admissions])
+Total Billing = SUM(fact_billing_summary[billing_amount])
+Avg Stay Duration = AVERAGE(fact_admissions[avg_stay_duration])
+% High-Risk Patients = 
+DIVIDE(
+    CALCULATE(COUNTROWS(vw_high_risk_patients), vw_high_risk_patients[risk_level] = "High"),
+    COUNTROWS(vw_high_risk_patients),
+    0
+)
+% Billing Share by Insurance =
+DIVIDE(
+    [Total Billing],
+    CALCULATE([Total Billing], ALL(vw_total_billing_by_insurance)),
+    0
+)
+```
+
+---
+
+## 🎨 Design Highlights
+
+- Unified dark-light theme with gradient cards  
+- Consistent slicers (Year, Month, Hospital, Insurance)  
+- Drill-through navigation to **Patient Details**  
+- KPI indicators with dynamic icons and color states  
+
+---
+
+## 🔮 Next Steps
+
+1. Add ML model (readmission prediction, stay duration regression).  
+2. Integrate chatbot (natural language analytics). 
 
 ---
 
 ## 🧾 Notes
-
-- All surrogate keys (`_sk`) are generated using deterministic **MD5 hash ordering** to maintain stable primary keys.  
-- Each layer is validated using dbt tests (`unique`, `not_null`, and `relationships`).  
-- Views depend on fact and dimension tables, enabling rich analytical queries for Power BI or downstream tools.  
+- Surrogate keys (`_sk`) generated via deterministic MD5 hashing.  
+- dbt tests: `unique`, `not_null`, `relationships` enforced.  
+- Relationships structured in a **star schema** for optimal Power BI performance.  
 
 ---
+
+### 📂 Repository Structure
+
+```
+├── chatbot/
+├── databricks/
+│   ├── bronze/
+│   ├── silver/
+│   └── gold/
+├── dbt/
+│   ├── analyses/
+│   ├── macros/
+│   ├── models/
+│   ├── seeds/
+│   ├── snapshots/
+│   ├── tests/
+│   └── dbt_project.yml
+├── powerbi/
+│   ├── Patient_Risk_Prediction.pbix
+│   └── assets/
+│       ├── home_summary.png
+│       ├── patient_insights.png
+│       ├── hospital_performance.png
+│       ├── doctor_insights.png
+│       ├── billing_insurance.png
+│       └── date_trends.png
+└── README.md
+```
