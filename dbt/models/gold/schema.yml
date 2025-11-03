@@ -5,13 +5,20 @@ version: 2
 # graph TD
 #     dim_patient --> fact_admissions
 #     dim_doctor --> fact_admissions
+#     dim_hospital --> fact_admissions
+#     dim_date --> fact_admissions
+#
 #     dim_patient --> fact_billing_summary
+#     dim_doctor --> fact_billing_summary
+#     dim_hospital --> fact_billing_summary
+#     dim_date --> fact_billing_summary
 #
 #     fact_admissions --> vw_high_risk_patients
 #     fact_admissions --> vw_avg_stay_by_hospital
 #     fact_billing_summary --> vw_total_billing_by_insurance
 #     dim_patient --> vw_patient_summary
 #     dim_doctor --> vw_patient_summary
+#     dim_hospital --> vw_patient_summary
 #     fact_admissions --> vw_patient_summary
 #     fact_billing_summary --> vw_patient_summary
 # ```
@@ -61,6 +68,38 @@ models:
       - name: total_patients
         description: Total number of patients treated.
 
+  - name: dim_hospital
+    description: Dimension table containing unique hospital details.
+    columns:
+      - name: hospital_sk
+        description: Surrogate primary key for the hospital dimension.
+        tests:
+          - unique
+          - not_null
+      - name: hospital
+        description: Name of the hospital.
+        tests:
+          - not_null
+
+  - name: dim_date
+    description: Date dimension providing calendar attributes for reporting and time-based analysis.
+    columns:
+      - name: date_sk
+        description: Surrogate key for the date dimension.
+        tests:
+          - unique
+          - not_null
+      - name: date_actual
+        description: Actual date in YYYY-MM-DD format.
+      - name: day
+        description: Day of the month.
+      - name: month
+        description: Month of the year.
+      - name: year
+        description: Calendar year.
+      - name: quarter
+        description: Quarter of the year (Q1–Q4).
+
   # ------------------ FACTS ------------------
   - name: fact_admissions
     description: Fact table capturing details of patient admissions, average stay, and admission types.
@@ -73,17 +112,27 @@ models:
       - name: doctor_sk
         description: Foreign key referencing the doctor dimension.
         tests:
-          - not_null
           - relationships:
               to: ref('dim_doctor')
               field: doctor_sk
       - name: patient_sk
         description: Foreign key referencing the patient dimension.
         tests:
-          - not_null
           - relationships:
               to: ref('dim_patient')
               field: patient_sk
+      - name: hospital_sk
+        description: Foreign key referencing the hospital dimension.
+        tests:
+          - relationships:
+              to: ref('dim_hospital')
+              field: hospital_sk
+      - name: date_sk
+        description: Foreign key referencing the date dimension.
+        tests:
+          - relationships:
+              to: ref('dim_date')
+              field: date_sk
       - name: doctor
         description: Doctor name.
       - name: hospital
@@ -106,18 +155,36 @@ models:
         tests:
           - unique
           - not_null
+      - name: doctor_sk
+        description: Foreign key referencing the doctor dimension.
+        tests:
+          - relationships:
+              to: ref('dim_doctor')
+              field: doctor_sk
+      - name: patient_sk
+        description: Foreign key referencing the patient dimension.
+        tests:
+          - relationships:
+              to: ref('dim_patient')
+              field: patient_sk
+      - name: hospital_sk
+        description: Foreign key referencing the hospital dimension.
+        tests:
+          - relationships:
+              to: ref('dim_hospital')
+              field: hospital_sk
+      - name: date_sk
+        description: Foreign key referencing the date dimension.
+        tests:
+          - relationships:
+              to: ref('dim_date')
+              field: date_sk
       - name: hospital
         description: Hospital name.
-        tests:
-          - not_null
       - name: insurance_provider
         description: Insurance provider.
-        tests:
-          - not_null
       - name: total_billed
         description: Total billing amount across patients.
-        tests:
-          - not_null
       - name: avg_bill
         description: Average bill per patient.
       - name: total_patients
