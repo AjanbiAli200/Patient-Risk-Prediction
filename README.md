@@ -187,7 +187,6 @@ DIVIDE(
     0
 )
 ```
-
 ---
 
 ## 🎨 Design Highlights
@@ -195,39 +194,102 @@ DIVIDE(
 - Unified dark-light theme with gradient cards  
 - Consistent slicers (Year, Month, Hospital, Insurance)  
 - Drill-through navigation to **Patient Details**  
-- KPI indicators with dynamic icons and color states  
+- KPI indicators with dynamic icons and color states 
 
 ---
+### 🤖 Machine Learning Models
+## 🎯 Objective
 
+- Two predictive models were developed using Delta tables as inputs:
+- Classification Model → Predict whether a patient will be readmitted within 30 days
+- Regression Model → Predict the expected hospital stay duration (in days)
+
+⚙️ Workflow
+| Step                  | Task                                                                        | Tools              |
+| --------------------- | --------------------------------------------------------------------------- | ------------------ |
+| **1. Data Source**    | Delta tables from `ml.patient_readmission_30d` and `ml.stay_duration`       | Databricks SQL     |
+| **2. Data Prep**      | Encoding, scaling, and feature selection                                    | scikit-learn       |
+| **3. Model Training** | Logistic Regression (classification) and Linear Regression (regression)     | sklearn            |
+| **4. Evaluation**     | Precision, Recall, F1, ROC-AUC (classification); MAE, RMSE, R² (regression) | sklearn.metrics    |
+| **5. Visualization**  | Compare before & after scaled datasets and actual vs predicted outputs      | pandas, matplotlib |
+---
+
+🧮 Classification — Readmission Prediction (30 Days)
+```
+# Logistic Regression Model
+model = LogisticRegression()
+model.fit(X_train_scaled, y_train)
+
+preds = model.predict(X_test_scaled)
+print(classification_report(y_test, preds))
+print("ROC-AUC:", roc_auc_score(y_test, preds))
+```
+
+# Key Metrics:
+- Accuracy: ~0.99
+- ROC-AUC: 0.50 (imbalanced class — majority of patients not readmitted)
+- Notes: Consider oversampling techniques (SMOTE) for better class balance
+
+## 📈 Regression — Stay Duration Prediction
+```
+# Linear Regression Model
+model = LinearRegression()
+model.fit(X_train_scaled, y_train)
+
+preds = model.predict(X_test_scaled)
+mae = mean_absolute_error(y_test, preds)
+mse = mean_squared_error(y_test, preds)
+rmse = np.sqrt(mse)
+r2 = r2_score(y_test, preds)
+```
+
+## Model Performance:
+
+| Metric   | Description                  | Example Result |
+| -------- | ---------------------------- | -------------- |
+| **MAE**  | Mean Absolute Error          | 1.42           |
+| **MSE**  | Mean Squared Error           | 3.84           |
+| **RMSE** | Root Mean Square Error       | 1.96           |
+| **R²**   | Coefficient of Determination | 0.87           |
+
+## 📊 Example Visualization
+| Actual Stay | Predicted Stay |
+| ----------- | -------------- |
+| 14          | 13.8           |
+| 22          | 21.5           |
+| 7           | 7.3            |
+| 10          | 9.7            |
+
+---
+## 💡 Insights
+- The regression model achieved strong correlation (R² ≈ 0.87).
+- Classification model indicates need for data rebalancing or additional patient history features.
+- Future versions will integrate model outputs into Power BI dashboards via Delta Live Tables.
+
+---
 ## 🔮 Next Steps
-
-1. Add ML model (readmission prediction, stay duration regression).  
-2. Integrate chatbot (natural language analytics). 
+1. Add ML model (readmission prediction, stay duration regression).
+2. Integrate chatbot (natural language analytics).
+3. Deploy ML models as REST APIs for Power BI integration.
 
 ---
-
 ## 🧾 Notes
-- Surrogate keys (`_sk`) generated via deterministic MD5 hashing.  
-- dbt tests: `unique`, `not_null`, `relationships` enforced.  
-- Relationships structured in a **star schema** for optimal Power BI performance.  
-
----
-
-### 📂 Repository Structure
+- Surrogate keys (_sk) generated via deterministic MD5 hashing.
+- dbt tests: unique, not_null, relationships enforced.
+- Relationships structured in a star schema for optimal Power BI performance.
 
 ```
+📂 Repository Structure
 ├── chatbot/
 ├── databricks/
 │   ├── bronze/
 │   ├── silver/
 │   └── gold/
+├── ml/
+│   ├── patient_readmission_30d_notebook.ipynb
+│   └── stay_duration_notebook.ipynb
 ├── dbt/
-│   ├── analyses/
-│   ├── macros/
 │   ├── models/
-│   ├── seeds/
-│   ├── snapshots/
-│   ├── tests/
 │   └── dbt_project.yml
 ├── powerbi/
 │   ├── Patient_Risk_Prediction.pbix
