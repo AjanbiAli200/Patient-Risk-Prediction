@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: patient_readmission_30d
+    description: ML training dataset for 30-day readmission classification.
+    columns:
+      - name: patient_sk
+        tests: [not_null]
+      - name: readmitted_30d
+        description: 1 if readmitted within 30 days, else 0
+        tests:
+          - accepted_values:
+              values: [0, 1]
+
+  - name: stay_duration
+    description: ML training dataset for predicting length of stay.
+    columns:
+      - name: target_stay_duration
+        description: Stay duration (days)
+        tests: [not_null]
