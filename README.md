@@ -269,7 +269,7 @@ r2 = r2_score(y_test, preds)
 
 ---
 ### 🤖 Smart RAG Chatbot — GenAI-Powered Data Assistant
-![Smart RAG Chatbot — GenAI-Powered Data Assistant](chatbot\app\chatbot_UI.png)
+![Smart RAG Chatbot — GenAI-Powered Data Assistant](chatbot/app/chatbot_UI.png)
 ## 🎯 Objective
 
 - The Smart RAG Chatbot extends the Patient Risk Prediction project with Natural Language Querying over clinical data.
