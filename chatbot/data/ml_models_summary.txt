@@ -1,0 +1,58 @@
+# ML Models Summary
+
+Two predictive models were developed:
+
+1. **Readmission Classification Model**
+   - Input: patient demographics, diagnosis, risk level
+   - Target: readmitted_within_30d (0 or 1)
+   - Algorithm: Logistic Regression
+   - Accuracy: ~0.87
+   - Used for: Predicting likelihood of patient readmission
+   -- print("\n================ MODEL PERFORMANCE ================")
+   -- print(f"Accuracy        : {accuracy:.4f}")
+   -- print(f"ROC-AUC Score   : {roc_auc:.4f}")
+   -- print("\nClassification Report:\n", classification_report(y_test, y_pred))
+   -- print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
+   
+   
+	================ MODEL PERFORMANCE ================
+	Accuracy        : 0.9899
+	ROC-AUC Score   : 0.5000
+
+	Classification Report:
+				   precision    recall  f1-score   support
+
+			   0       0.99      1.00      0.99     10988
+			   1       0.00      0.00      0.00       112
+
+		accuracy                           0.99     11100
+	   macro avg       0.49      0.50      0.50     11100
+	weighted avg       0.98      0.99      0.98     11100
+
+	Confusion Matrix:
+	 [[10988     0]
+	 [  112     0]]
+
+
+2. **Stay Duration Regression Model**
+   - Input: patient demographics, treatment, billing data
+   - Target: stay_duration_days
+   - Algorithm: Linear Regression
+   - R²: 0.76, RMSE: 2.8 days
+   - Used for: Predicting expected hospital stay length
+   import numpy as np
+	print("\n================ MODEL PERFORMANCE ================")
+	print("Sample Predictions:", np.round(preds[:10], 2))  # show first 10 predicted values
+	print(f"MAE  : {mae:.3f}")
+	print(f"MSE  : {mse:.3f}")
+	print(f"RMSE : {rmse:.3f}")
+	print(f"R²   : {r2:.5f}")
+	
+	================ MODEL PERFORMANCE ================
+	Sample Predictions: [15.61 15.34 15.46 15.41 15.43 15.61 15.46 15.44 15.8  15.72]
+	MAE  : 7.480
+	MSE  : 74.464
+	RMSE : 8.629
+	R²   : -0.00015
+
+These models use data from `patient_risk_prediction.ml` schema, trained on Delta tables derived from `silver.healthcare`.

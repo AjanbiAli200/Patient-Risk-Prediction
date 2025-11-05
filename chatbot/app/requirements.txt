@@ -1,0 +1,19 @@
+# Core
+numpy
+pandas
+tqdm
+
+# LLM / RAG
+sentence-transformers
+langchain
+langchain-community
+transformers
+
+# OpenSearch
+opensearch-py
+
+# Streamlit UI
+streamlit
+
+# Optional
+python-dotenv
