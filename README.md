@@ -12,9 +12,10 @@
 4. [Conceptual Mapping to Clinical Tables](#conceptual-mapping-to-clinical-tables)  
 5. [Gold Layer Models](#gold-layer-models)  
 6. [ETL Summary](#etl-summary)  
-7. [Power BI Analytics & Visualization](#power-bi-analytics--visualization)  
-8. [Next Steps (Planned)](#next-steps-planned)  
-9. [Notes](#notes)  
+7. [Power BI Analytics & Visualization](#power-bi-analytics--visualization)
+8. [Machine Learning Models](#machine-learning-models)
+9. [Smart RAG Chatbot — GenAI-Powered Data Assistant](#smart-rag-chatbot—genai-powered-data-assistant)  
+10. [Notes](#notes)  
 
 ---
 
@@ -267,6 +268,63 @@ r2 = r2_score(y_test, preds)
 - Future versions will integrate model outputs into Power BI dashboards via Delta Live Tables.
 
 ---
+### 🤖 Smart RAG Chatbot — GenAI-Powered Data Assistant
+![Smart RAG Chatbot — GenAI-Powered Data Assistant](chatbot\app\chatbot_UI.png)
+## 🎯 Objective
+
+- The Smart RAG Chatbot extends the Patient Risk Prediction project with Natural Language Querying over clinical data.
+- It combines Retrieval-Augmented Generation (RAG), Databricks SQL, and OpenSearch to enable interactive, context-aware analytics.
+
+---
+### 🧩 Architecture Overview
+
+```
+flowchart TD
+    subgraph User["🧍 User"]
+        Q["Natural Language Question"]
+    end
+
+    subgraph StreamlitApp["💬 Streamlit Chatbot UI"]
+        A1["Question Input"]
+        A2["Response Display"]
+    end
+
+    subgraph SmartRAG["🧠 Smart RAG Engine"]
+        R1["SentenceTransformer (Embeddings)"]
+        R2["OpenSearch Vector Store"]
+        R3["Flan-T5 (Text Generation)"]
+        R4["Databricks SQL Connector"]
+    end
+
+    Q --> A1 --> R1
+    R1 --> R2
+    R2 --> R3
+    R3 --> R4
+    R4 --> A2 --> Q
+
+```
+## ⚙️ Technology Stack
+| Component           | Purpose                            | Tool / Model                                |
+| ------------------- | ---------------------------------- | ------------------------------------------- |
+| **Frontend**        | Chat Interface                     | Streamlit                                   |
+| **Vector Store**    | Document retrieval                 | OpenSearch                                  |
+| **Embedding Model** | Semantic search                    | `BAAI/bge-small-en`                         |
+| **Text Generation** | Question answering                 | `google/flan-t5-base`                       |
+| **SQL Connector**   | Analytical query execution         | Databricks SQL Connector                    |
+| **RAG Controller**  | Context retrieval + response logic | Python (Smart_Rag_Databricks_Chatbot_V2.py) |
+
+---
+## 🧠 Workflow
+| Step | Process                   | Description                                                                                                                |
+| ---- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| 1️⃣  | **Question Input**        | User enters a natural language query in Streamlit.                                                                         |
+| 2️⃣  | **Embedding & Retrieval** | The query is embedded via `BAAI/bge-small-en` and matched against the OpenSearch vector index.                             |
+| 3️⃣  | **Context Construction**  | Top `k` relevant documents are concatenated as context.                                                                    |
+| 4️⃣  | **Answer Generation**     | `Flan-T5` model generates an answer using retrieved context.                                                               |
+| 5️⃣  | **SQL Path (Analytical)** | If question involves aggregation or metrics, the chatbot generates SQL, executes it in Databricks, and summarizes results. |
+
+
+---
 ## 🔮 Next Steps
 1. Add ML model (readmission prediction, stay duration regression).
 2. Integrate chatbot (natural language analytics).
@@ -281,6 +339,13 @@ r2 = r2_score(y_test, preds)
 ```
 📂 Repository Structure
 ├── chatbot/
+    ├── app/
+           ├── app.py
+           └── backround_pic_chatbot.png
+    ├── notebooks/
+            ├──  Smart_Rag_Databricks_Chatbot_V2.py
+            ├── __init__.py
+            └── notebooks/__init__.py
 ├── databricks/
 │   ├── bronze/
 │   ├── silver/
